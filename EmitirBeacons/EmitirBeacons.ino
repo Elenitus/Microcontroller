@@ -75,14 +75,26 @@ void startAdvertising(){
 
 
 
+// ----------------------------------------------------
+//                        LOOP()
+// ----------------------------------------------------
 
-   
+namespace Loop {
+   int cont = 0;
+};
 
+void loop() {
 
+   using namespace Loop;
 
-void loop(){
+   cont++;
 
-}
+   delay(1000);
+
+   Serial.print( " ** loop cont=" );
+   Serial.println( cont );
+} // ()
+
 
 
 
