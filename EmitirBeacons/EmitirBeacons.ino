@@ -1,9 +1,12 @@
 //----------------------------------------------------
-// Código para emitir beacons desde SparkFun Pro nRF52840 Mini
+// Código para medir datos y enviarlos mediante beacons
 //----------------------------------------------------
 
-#include <bluefruit.h>
+#define PinVGas 5
+#define PinVRef 28
+#define PinVTemp 29
 
+#include <bluefruit.h>
 
 // ----------------------------------------------------
 //                    SETUP()
@@ -28,7 +31,7 @@ void setup(){
   Bluefruit.setName("GTI-Elena");
   Bluefruit.ScanResponse.addName();
 
-  startAdvertising();
+  startAdvertising(0,0);
 
   Serial.println("\nAdvertising");
 
@@ -38,7 +41,7 @@ void setup(){
 // ----------------------------------------------------
 //            Función startAdvertising()
 // ----------------------------------------------------
-void startAdvertising(){
+void startAdvertising(float medicionGas, float medicionTemperatura){
   
   Serial.println("startAdvertising()");
 
@@ -60,7 +63,7 @@ void startAdvertising(){
     '-', 'P', 'R', 'O', 'Y', '-', '3', 'A'
   };
 
-  BLEBeacon elBeacon (beaconUUID, 12, 34, 73 );
+  BLEBeacon elBeacon (beaconUUID, medicionGas, medicionTemperatura, 73 );
   elBeacon.setManufacturer(0x004c); //id de Apple
   Bluefruit.Advertising.setBeacon(elBeacon);
 
@@ -89,12 +92,35 @@ void loop() {
 
    cont++;
 
-   delay(1000);
-
    Serial.print( " ** loop cont=" );
    Serial.println( cont );
-} // ()
 
+     //Leemos datos analógicos del sensor:
+  float analogGas = analogRead(PinVGas);
+  float analogRef = analogRead(PinVRef);
+  float analogTemp = analogRead(PinVTemp);
+
+  //Pasamos los datos analógicos a voltios:
+  //Nuestro ADC es de 10 bits
+
+  //((analogGas - analogRef) / 2^10) * 3.3
+
+  float voltios = ((analogGas - analogRef) / 1024) * 3.3;
+
+  //Obtenemos las ppm a partir de los datos analógicos:
+  float medicionEnPpm = (voltios * pow(10,6)) / ((-35.35) * 499);
+
+  Serial.println(analogGas);
+  Serial.println(analogRef);
+  Serial.println(analogTemp);
+  Serial.println(voltios);
+  Serial.println(medicionEnPpm);
+  Serial.println("--------------------------");
+
+  startAdvertising(medicionEnPpm *10, analogTemp);
+
+  delay(10000);
+} // loop()
 
 
 
